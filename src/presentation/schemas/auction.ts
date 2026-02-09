@@ -6,3 +6,7 @@ export const auctionSchema = z.object({
   status: z.nativeEnum(AuctionStatus),
   highestBid: z.number().optional(),
 });
+
+export const bidSchema = z.object({
+  amount: z.number().min(0),
+});

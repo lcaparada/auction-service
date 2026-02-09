@@ -20,9 +20,27 @@ custom:
       '@': './src'
 
 functions:
-  hello:
+  create-auction:
     handler: src/presentation/handlers/create-auction.handler
     events:
       - http:
           method: POST
           path: /auction
+  get-auction-by-id:
+    handler: src/presentation/handlers/get-auction-by-id.handler
+    events:
+      - http:
+          method: GET
+          path: /auction/{id}
+  get-auctions:
+    handler: src/presentation/handlers/get-auctions.handler
+    events:
+      - http:
+          method: GET
+          path: /auctions
+  place-bid:
+    handler: src/presentation/handlers/place-bid.handler
+    events:
+      - http:
+          method: POST
+          path: /auction/{id}/bid
