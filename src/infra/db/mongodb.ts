@@ -1,6 +1,8 @@
-import { Db, MongoClient } from "mongodb";
+import { Db, MongoClient } from 'mongodb';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const uri = process.env.MONGODB_URI!;
+const uri = process.env.MONGODB_URI_TEST!;
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 

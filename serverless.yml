@@ -21,7 +21,7 @@ custom:
 
 functions:
   hello:
-    handler: src/handlers/create-auction.handler
+    handler: src/presentation/handlers/create-auction.handler
     events:
       - http:
           method: POST
