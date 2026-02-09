@@ -11,7 +11,12 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     logger.info('Creating auction', { event: JSON.stringify(event) });
     const body = auctionSchema.parse(JSON.parse(event.body || '{}'));
     logger.info('Auction body', { body: JSON.stringify(body) });
-    const auction = new AuctionEntity(body);
+    const auction = new AuctionEntity({
+      ...body,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      endingAt: new Date(Date.now() + 1000 * 60 * 60),
+    });
     logger.info('Auction entity', { auction: JSON.stringify(auction) });
     AuctionEntity.validate(auction.props);
     logger.info('Auction validated', { auction: JSON.stringify(auction) });

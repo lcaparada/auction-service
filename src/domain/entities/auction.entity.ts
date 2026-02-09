@@ -10,13 +10,14 @@ export interface AuctionEntityProps {
   title: string;
   status: AuctionStatus;
   createdAt?: Date;
+  endingAt?: Date;
   highestBid?: number;
   updatedAt?: Date;
 }
 
 export class AuctionEntity extends Entity<AuctionEntityProps> {
-  constructor(props: AuctionEntityProps) {
-    super(props);
+  constructor(props: AuctionEntityProps, id?: string) {
+    super(props, id);
   }
 
   static validate(props: AuctionEntityProps) {
@@ -31,6 +32,14 @@ export class AuctionEntity extends Entity<AuctionEntityProps> {
 
   updateHighestBid(value: number) {
     this.props.highestBid = value;
+  }
+
+  updateStatus(value: AuctionStatus) {
+    this.props.status = value;
+  }
+
+  set status(value: AuctionStatus) {
+    this.props.status = value;
   }
 
   set highestBid(value: number) {

@@ -44,3 +44,7 @@ functions:
       - http:
           method: POST
           path: /auction/{id}/bid
+  process-auctions:
+    handler: src/presentation/handlers/process-auctions.handler
+    events:
+      - schedule: rate(1 minute)

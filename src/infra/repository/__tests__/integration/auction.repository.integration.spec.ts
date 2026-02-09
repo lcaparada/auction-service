@@ -235,4 +235,136 @@ describe('AuctionRepository', () => {
       expect(updated?.status).toBe(AuctionStatus.OPEN);
     });
   });
+
+  describe('ensureIndexes', () => {
+    it('should create index for getAuctionsToProcess without throwing', async () => {
+      await expect(sut.ensureIndexes()).resolves.toBeUndefined();
+    });
+  });
+
+  describe('getAuctionsToProcess', () => {
+    it('should return empty array when no auctions match', async () => {
+      const result = await sut.getAuctionsToProcess();
+      expect(result).toEqual([]);
+    });
+
+    it('should return only auctions with endingAt in the past and status OPEN', async () => {
+      const pastDate = new Date(Date.now() - 60000);
+      const futureDate = new Date(Date.now() + 60000);
+      await db.collection('auctions').insertMany([
+        {
+          _id: new ObjectId(),
+          title: 'To Process',
+          status: AuctionStatus.OPEN,
+          highestBid: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          endingAt: pastDate,
+        },
+        {
+          _id: new ObjectId(),
+          title: 'Future',
+          status: AuctionStatus.OPEN,
+          highestBid: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          endingAt: futureDate,
+        },
+        {
+          _id: new ObjectId(),
+          title: 'Closed',
+          status: AuctionStatus.CLOSED,
+          highestBid: 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          endingAt: pastDate,
+        },
+      ]);
+
+      const result = await sut.getAuctionsToProcess();
+
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe('To Process');
+      expect(result[0].status).toBe(AuctionStatus.OPEN);
+    });
+
+    it('should return all matching auctions when multiple qualify', async () => {
+      const pastDate = new Date(Date.now() - 1000);
+      await db.collection('auctions').insertMany([
+        {
+          _id: new ObjectId(),
+          title: 'First',
+          status: AuctionStatus.OPEN,
+          highestBid: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          endingAt: pastDate,
+        },
+        {
+          _id: new ObjectId(),
+          title: 'Second',
+          status: AuctionStatus.OPEN,
+          highestBid: 50,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          endingAt: pastDate,
+        },
+      ]);
+
+      const result = await sut.getAuctionsToProcess();
+
+      expect(result).toHaveLength(2);
+      const titles = result.map((r) => r.title).sort();
+      expect(titles).toEqual(['First', 'Second']);
+    });
+  });
+
+  describe('updateStatus', () => {
+    it('should update status and updatedAt when auction exists', async () => {
+      const id = new ObjectId();
+      await db.collection('auctions').insertOne({
+        _id: id,
+        title: 'To Close',
+        status: AuctionStatus.OPEN,
+        highestBid: 100,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      const auction = new AuctionEntity(
+        { title: 'To Close', status: AuctionStatus.CLOSED },
+        id.toString()
+      );
+      await sut.updateStatus(auction);
+
+      const updated = await db.collection('auctions').findOne({ _id: id });
+      expect(updated?.status).toBe(AuctionStatus.CLOSED);
+      expect(updated?.updatedAt).toBeDefined();
+    });
+
+    it('should not change other fields when updating status', async () => {
+      const id = new ObjectId();
+      const createdAt = new Date('2025-01-01');
+      await db.collection('auctions').insertOne({
+        _id: id,
+        title: 'Keep Title',
+        status: AuctionStatus.OPEN,
+        highestBid: 200,
+        createdAt,
+        updatedAt: new Date(),
+      });
+
+      const auction = new AuctionEntity(
+        { title: 'Keep Title', status: AuctionStatus.CANCELLED },
+        id.toString()
+      );
+      await sut.updateStatus(auction);
+
+      const updated = await db.collection('auctions').findOne({ _id: id });
+      expect(updated?.status).toBe(AuctionStatus.CANCELLED);
+      expect(updated?.title).toBe('Keep Title');
+      expect(updated?.highestBid).toBe(200);
+      expect(new Date(updated!.createdAt).toISOString()).toBe(createdAt.toISOString());
+    });
+  });
 });
