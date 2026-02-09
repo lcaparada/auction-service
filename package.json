@@ -1,0 +1,25 @@
+{
+  "name": "auction-service",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.28.5",
+    "@types/aws-lambda": "^8.10.160",
+    "@types/node": "^25.2.2",
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-env": "^1.6.0",
+    "prettier": "3.8.1",
+    "serverless-esbuild": "^1.57.0",
+    "serverless-pseudo-parameters": "^2.5.0",
+    "typescript": "^5.9.3",
+    "webpack": "^4.35.2"
+  },
+  "dependencies": {
+    "@types/http-errors": "^2.0.5",
+    "aws-sdk": "^2.639.0",
+    "http-errors": "^2.0.1",
+    "mongodb": "^7.1.0"
+  }
+}
