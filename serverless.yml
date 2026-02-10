@@ -23,7 +23,7 @@ functions:
   authorizer:
     handler: src/presentation/authorizer/handler.handler
     environment:
-      JWT_SECRET: ${env:JWT_SECRET, ''}
+      JWT_SECRET: ${env:JWT_SECRET, 'secret'}
 
   create-auction:
     handler: src/presentation/handlers/create-auction.handler
