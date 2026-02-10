@@ -20,30 +20,51 @@ custom:
       '@': './src'
 
 functions:
+  authorizer:
+    handler: src/presentation/authorizer/handler.handler
+    environment:
+      JWT_SECRET: ${env:JWT_SECRET, ''}
+
   create-auction:
     handler: src/presentation/handlers/create-auction.handler
     events:
       - http:
           method: POST
           path: /auction
+          authorizer:
+            name: authorizer
+            type: request
+            resultTtlInSeconds: 300
   get-auction-by-id:
     handler: src/presentation/handlers/get-auction-by-id.handler
     events:
       - http:
           method: GET
           path: /auction/{id}
+          authorizer:
+            name: authorizer
+            type: request
+            resultTtlInSeconds: 300
   get-auctions:
     handler: src/presentation/handlers/get-auctions.handler
     events:
       - http:
           method: GET
           path: /auctions
+          authorizer:
+            name: authorizer
+            type: request
+            resultTtlInSeconds: 300
   place-bid:
     handler: src/presentation/handlers/place-bid.handler
     events:
       - http:
           method: POST
           path: /auction/{id}/bid
+          authorizer:
+            name: authorizer
+            type: request
+            resultTtlInSeconds: 300
   process-auctions:
     handler: src/presentation/handlers/process-auctions.handler
     events:

@@ -23,9 +23,7 @@ jest.mock('../../utils/http-error', () => ({
   }),
 }));
 
-const makeEvent = (
-  overrides: Partial<{ body: string }> = {}
-): Parameters<typeof handler>[0] =>
+const makeEvent = (overrides: Partial<{ body: string }> = {}): Parameters<typeof handler>[0] =>
   ({
     body: JSON.stringify({
       title: 'Valid Auction Title',
@@ -36,8 +34,7 @@ const makeEvent = (
 
 const emptyContext = {} as Parameters<typeof handler>[1];
 const noopCallback = (() => {}) as Parameters<typeof handler>[2];
-const invoke = (event: Parameters<typeof handler>[0]) =>
-  handler(event, emptyContext, noopCallback);
+const invoke = (event: Parameters<typeof handler>[0]) => handler(event, emptyContext, noopCallback);
 
 describe('create-auction handler', () => {
   beforeEach(() => {

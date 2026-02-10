@@ -8,7 +8,8 @@ import { logger } from '../utils/logger';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent) => {
   try {
-    logger.info('Creating auction', { event: JSON.stringify(event) });
+    const userId = event.requestContext?.authorizer?.userId;
+    logger.info('Creating auction', { userId, event: JSON.stringify(event) });
     const body = auctionSchema.parse(JSON.parse(event.body || '{}'));
     logger.info('Auction body', { body: JSON.stringify(body) });
     const auction = new AuctionEntity({
@@ -26,7 +27,10 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     logger.info('Auction created', { auction: JSON.stringify(auction) });
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Auction created' }),
+      body: JSON.stringify({
+        message: 'Auction created',
+        createdBy: userId ?? undefined,
+      }),
     };
   } catch (error) {
     toHttpError(error, {
