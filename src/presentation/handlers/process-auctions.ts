@@ -5,6 +5,8 @@ import { logger } from '../utils/logger';
 import { connectToDatabase } from '@/infra/db/mongodb';
 import { AuctionRepository } from '@/infra/repository/auction.repository';
 import { AuctionEntity, AuctionStatus } from '@/domain/entities/auction.entity';
+import { EmailQueueService } from '@/infra/services/email-queue.service';
+import { EmailMessage } from '@/infra/types/email.types';
 
 export const handler: ScheduledHandler = async (event) => {
   try {
@@ -21,12 +23,19 @@ export const handler: ScheduledHandler = async (event) => {
     }
 
     let auctionsUpdated = 0;
+    const emailQueueService = new EmailQueueService();
 
     for (const auction of auctions) {
       const auctionEntity = new AuctionEntity(auction);
       auctionEntity.updateStatus(AuctionStatus.CLOSED);
       await repository.updateStatus(auctionEntity);
       logger.info('Auction status updated', { auction: JSON.stringify(auctionEntity) });
+      const emailMessage: EmailMessage = {
+        to: 'lcaparada@gmail.com',
+        subject: 'Auction closed',
+        body: 'The auction has been closed',
+      };
+      await emailQueueService.sendMessage(emailMessage);
       auctionsUpdated++;
     }
 

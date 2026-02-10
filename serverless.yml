@@ -1,7 +1,7 @@
 service: auction-service
 
 plugins:
-  - serverless-pseudo-parameters
+  - serverless-iam-roles-per-function
   - serverless-esbuild
 
 provider:
@@ -11,7 +11,23 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: us-east-1
 
+resources:
+  Resources:
+    MailQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.mailQueue.name}
+  Outputs:
+    MailQueueUrl:
+      Description: URL da fila SQS de e-mails (use em SQS_QUEUE_URL para testes locais)
+      Value:
+        Ref: MailQueue
+      Export:
+        Name: ${self:service}-${self:provider.stage}-MailQueueUrl
+
 custom:
+  mailQueue:
+    name: mail-queue-${self:provider.stage}
   esbuild:
     bundle: true
     minify: true
@@ -35,6 +51,7 @@ functions:
             name: authorizer
             type: request
             resultTtlInSeconds: 300
+
   get-auction-by-id:
     handler: src/presentation/handlers/get-auction-by-id.handler
     events:
@@ -45,6 +62,7 @@ functions:
             name: authorizer
             type: request
             resultTtlInSeconds: 300
+
   get-auctions:
     handler: src/presentation/handlers/get-auctions.handler
     events:
@@ -55,6 +73,7 @@ functions:
             name: authorizer
             type: request
             resultTtlInSeconds: 300
+
   place-bid:
     handler: src/presentation/handlers/place-bid.handler
     events:
@@ -65,7 +84,40 @@ functions:
             name: authorizer
             type: request
             resultTtlInSeconds: 300
+
   process-auctions:
     handler: src/presentation/handlers/process-auctions.handler
     events:
       - schedule: rate(1 minute)
+    environment:
+      SQS_QUEUE_URL:
+        Ref: MailQueue
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - sqs:SendMessage
+        Resource:
+          Fn::GetAtt:
+            - MailQueue
+            - Arn
+
+  send-email:
+    handler: src/presentation/handlers/sendEmail.handler
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - MailQueue
+              - Arn
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - ses:SendEmail
+        Resource: '*'
+      - Effect: Allow
+        Action:
+          - sqs:ReceiveMessage
+        Resource:
+          Fn::GetAtt:
+            - MailQueue
+            - Arn
